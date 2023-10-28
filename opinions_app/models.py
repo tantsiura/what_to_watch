@@ -1,20 +1,7 @@
-import csv
 from datetime import datetime
-from random import randrange
 
-import click
-from flask import Flask, abort, flash, redirect, render_template, url_for
-from flask_migrate import Migrate
-from flask_sqlalchemy import SQLAlchemy
-from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, URLField
-from wtforms.validators import DataRequired, Length, Optional
+from . import db
 
-app = Flask(__name__)
-
-db = SQLAlchemy(app)
-
-migrate = Migrate(app, db)
 
 class Opinion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -23,3 +10,22 @@ class Opinion(db.Model):
     source = db.Column(db.String(256))
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     added_by = db.Column(db.String(64))
+
+    def from_dict(self, data):
+        # Для каждого поля модели, которое можно заполнить...
+        for field in ['title', 'text', 'source', 'added_by']:
+            # ...выполняется проверка: есть ли ключ с таким же именем в словаре
+            if field in data:
+                # Если есть — добавляем значение из словаря
+                # в соответствующее поле объекта модели:
+                setattr(self, field, data[field])
+
+    def to_dict(self):
+        return dict(
+            id = self.id,
+            title = self.title,
+            text = self.text,
+            source = self.source,
+            timestamp = self.timestamp,
+            added_by = self.added_by
+        )
